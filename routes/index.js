@@ -1,19 +1,20 @@
-import express from 'express'
+const express = require('express');
 
-import AppController from '../controllers/AppController'
+const router = express.Router();
+const AppController = require('../controllers/AppController');
+const UsersController = require('../controllers/UsersController');
+const AuthController = require('../controllers/AuthController');
 
+router.get('/status', AppController.getStatus);
 
-function indexRoutes(app) {
-    const router = express.Router()
-    app.use("/", router)
+router.get('/stats', AppController.getStats);
 
-    router.get('/status', (req, res) => {
-        AppController.getStatus(req, res)
-    })
+router.post('/users', UsersController.postNew);
 
-    router.get('/stats', (req, res) => {
-        AppController.getStats(req, res)
-    })
-}
+router.get('/connect', AuthController.getConnect);
 
-export default indexRoutes
+router.get('/disconnect', AuthController.getDisconnect);
+
+router.get('/users/me', UsersController.getMe);
+
+module.exports = router;

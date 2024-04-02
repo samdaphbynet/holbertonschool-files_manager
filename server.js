@@ -1,15 +1,19 @@
-const express = require("express")
-import indexRoutes from "./routes/index"
+import bodyParser from 'body-parser';
 
-const app = express()
+const express = require('express');
 
-const port = 5000
+const app = express();
 
-app.use(express.json())
+app.use(bodyParser.urlencoded({ extended: false }));
 
+app.use(bodyParser.json());
 
-indexRoutes(app)
+const routes = require('./routes/index');
 
-app.listen(port, function() {
-    console.log(`Server running on port ${port}`)
-})
+const PORT = process.env.PORT || 5000;
+
+app.use('/', routes);
+
+app.listen(PORT, () => {
+  console.log('APP disponible sur le port localhost', PORT);
+});
