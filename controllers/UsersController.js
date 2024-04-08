@@ -1,4 +1,5 @@
 import dbClient from "../utils/db";
+import RedisClient from "../utils/redis";
 import Queue from "bull";
 import sha1 from "sha1";
 
@@ -30,6 +31,25 @@ class UsersController {
     });
 
     return res.status(201).send(createdUser);
+  }
+
+  static async getMe(req, res){
+    const token = req.headers['x-token']
+    const key = `auth_${token}`
+
+    const userId = await RedisClient.get(key)
+
+    if (!userId) {
+      return res.status(401).send({error: "Unauthorized"})
+    }
+
+    const user = await dbClient.users.findOne({ _id: userId });
+
+    if (!user) {
+      return res.status(401).send({error: "Unauthorized"})
+    }
+
+    return res.json({email: user.email, id: user._id})
   }
 }
 
