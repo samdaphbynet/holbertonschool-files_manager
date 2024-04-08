@@ -1,5 +1,5 @@
 import dbClient from "../utils/db";
-import RedisClient from "../utils/redis";
+import redisClient from "../utils/redis";
 import Queue from "bull";
 import sha1 from "sha1";
 
@@ -37,7 +37,7 @@ class UsersController {
     const token = req.headers['x-token']
     const key = `auth_${token}`
 
-    const userId = await RedisClient.get(key)
+    const userId = await redisClient.get(key)
 
     if (!userId) {
       return res.status(401).send({error: "Unauthorized"})
