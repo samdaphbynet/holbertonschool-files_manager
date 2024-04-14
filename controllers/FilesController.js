@@ -33,7 +33,7 @@ class FilesController {
         let fileParentId = request.body.parentId || 0;
         fileParentId = fileParentId === '0' ? 0 : fileParentId;
         if (fileParentId !== 0) {
-          const parentFile = await DBClient.db.collection('files').findOne({ _id: ObjectId(fileParentId) });
+          const parentFile = await dbClient.db.collection('files').findOne({ _id: ObjectId(fileParentId) });
           if (!parentFile) return response.status(400).send({ error: 'Parent not found' });
           if (!['folder'].includes(parentFile.type)) return response.status(400).send({ error: 'Parent is not a folder' });
         }
@@ -47,7 +47,7 @@ class FilesController {
         };
     
         if (['folder'].includes(fileType)) {
-          await DBClient.db.collection('files').insertOne(fileDataDb);
+          await dbClient.db.collection('files').insertOne(fileDataDb);
           return response.status(201).send({
             id: fileDataDb._id,
             userId: fileDataDb.userId,
@@ -75,7 +75,7 @@ class FilesController {
         });
     
         fileDataDb.localPath = pathFile;
-        await DBClient.db.collection('files').insertOne(fileDataDb);
+        await dbClient.db.collection('files').insertOne(fileDataDb);
     
         fileQueue.add({
           userId: fileDataDb.userId,
