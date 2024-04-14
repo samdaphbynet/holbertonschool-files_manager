@@ -4,6 +4,7 @@ const router = express.Router();
 const AppController = require('../controllers/AppController');
 const UsersController = require('../controllers/UsersController');
 const {AuthController} = require('../controllers/AuthController');
+const {FilesController} = require('../controllers/FilesController');
 
 router.get('/status', (req, res) => {
   AppController.getStatus(req, res)
