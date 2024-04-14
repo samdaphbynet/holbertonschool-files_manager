@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import RedisClient from '../utils/redis';
+import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
 
 const { ObjectId } = require('mongodb');
@@ -90,7 +90,68 @@ class FilesController {
           isPublic: fileDataDb.isPublic,
           parentId: fileDataDb.parentId,
         });
-      }
+    }
+
+    static async getShow(request, response) {
+        const token = request.header('X-Token') || null;
+        if (!token) return response.status(401).send({ error: 'Unauthorized' });
+    
+        const redisToken = await redisClient.get(`auth_${token}`);
+        if (!redisToken) return response.status(401).send({ error: 'Unauthorized' });
+    
+        const user = await dbClient.db.collection('users').findOne({ _id: ObjectId(redisToken) });
+        if (!user) return response.status(401).send({ error: 'Unauthorized' });
+    
+        const idFile = request.params.id || '';
+    
+        const fileDocument = await dbClient.db.collection('files').findOne({ _id: ObjectId(idFile), userId: user._id });
+        if (!fileDocument) return response.status(404).send({ error: 'Not found' });
+    
+        return response.send({
+          id: fileDocument._id,
+          userId: fileDocument.userId,
+          name: fileDocument.name,
+          type: fileDocument.type,
+          isPublic: fileDocument.isPublic,
+          parentId: fileDocument.parentId,
+        });
+    }
+
+    static async getIndex(request, response) {
+        const token = request.header('X-Token') || null;
+        if (!token) return response.status(401).send({ error: 'Unauthorized' });
+    
+        const redisToken = await redisClient.get(`auth_${token}`);
+        if (!redisToken) return response.status(401).send({ error: 'Unauthorized' });
+    
+        const user = await dbClient.db.collection('users').findOne({ _id: ObjectId(redisToken) });
+        if (!user) return response.status(401).send({ error: 'Unauthorized' });
+    
+        const parentId = request.query.parentId || 0;
+
+    
+        const pagination = request.query.page || 0;
+    
+        const aggregationMatch = { $and: [{ parentId }] };
+        let aggregateData = [{ $match: aggregationMatch }, { $skip: pagination * 20 }, { $limit: 20 }];
+        if (parentId === 0) aggregateData = [{ $skip: pagination * 20 }, { $limit: 20 }];
+    
+        const files = await dbClient.db.collection('files').aggregate(aggregateData);
+        const filesArray = [];
+        await files.forEach((item) => {
+          const fileItem = {
+            id: item._id,
+            userId: item.userId,
+            name: item.name,
+            type: item.type,
+            isPublic: item.isPublic,
+            parentId: item.parentId,
+          };
+          filesArray.push(fileItem);
+        });
+    
+        return response.send(filesArray);
+    }
 }
 
 
